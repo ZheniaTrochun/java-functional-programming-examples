@@ -1,41 +1,57 @@
 package com.yevhenii.monads.tryMonad;
 
-import java.util.Optional;
-import java.util.function.Function;
+
+import java.util.Objects;
 
 public class Failed<T> implements Try<T> {
 
-    private Exception exception;
+    private final Throwable exception;
 
-    protected Failed(Exception exception) {
+    private Failed(Throwable exception) {
         this.exception = exception;
     }
 
-    protected Failed() {
-    }
-
-    @Override
-    public <R> Try<R> flatMap(Function<T, Try<R>> mapper) {
+    public static <T> Try<T> of(Throwable exception) {
         return new Failed<>(exception);
     }
 
     @Override
-    public <R> Try<R> map(TryFunction<T, R> mapper) {
-        return new Failed<>(exception);
+    public T get() {
+        throw new TryException(exception);
     }
 
     @Override
-    public Optional<T> toOptional() {
-        return Optional.empty();
+    public Throwable reason() {
+        return exception;
     }
 
     @Override
-    public Try<T> recover(Function<Exception, T> recovery) {
-        return Try.of(() -> recovery.apply(exception));
+    public boolean isSuccess() {
+        return false;
     }
 
     @Override
-    public Try<T> recoverWith(Function<Exception, Try<T>> recovery) {
-        return recovery.apply(exception);
+    public boolean isFailed() {
+        return true;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Failed<?> failed = (Failed<?>) o;
+        return Objects.equals(exception, failed.exception);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(exception);
+    }
+
+    @Override
+    public String toString() {
+        return "Failed{" +
+                "exception=" + exception +
+                '}';
     }
 }
